@@ -1,7 +1,9 @@
 package com.marketpulse;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -11,11 +13,14 @@ import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,31 +46,41 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
     public void onBindViewHolder(@NonNull final CriteriaListAdapter.ItemViewHolder holder, int position) {
         HashMap<String, MarketResponseModel.Variable> variableHashMap = criteriaList.get(position).getVariable();
         SpannableStringBuilder criteriaText = new SpannableStringBuilder(criteriaList.get(position).getText());
-//        Today's Volume > prev $2 Vol SMA by $3 x
         Pattern pattern = Pattern.compile("\\$\\d");
         Matcher matcher = pattern.matcher(criteriaText);
         int delta = 0;
 
         while (matcher.find()) {
             final int start = matcher.start() + delta;
-            String replacedValue = "";
+            Double replacedValue = 0.0;
             String match = matcher.group();
 
-            MarketResponseModel.Variable variable = variableHashMap.get(match);
+            final MarketResponseModel.Variable variable = variableHashMap.get(match);
             if (variable.getType().equalsIgnoreCase("indicator")) {
-                replacedValue = variable.getDefaultValue().toString();
+                replacedValue = Double.valueOf(variable.getDefaultValue());
             } else if (variable.getType().equalsIgnoreCase("value")) {
-                replacedValue = variable.getValues().get(0).toString();
+                replacedValue = variable.getValues().get(0);
             }
-//            criteriaText = criteriaText.replace(match, replacedValue);
-            criteriaText = criteriaText.replace(start, start + match.length(), replacedValue);
-            final int end = start + replacedValue.length();
+
+            String replacedValueFormatted;
+            if (replacedValue % 1 == 0)
+                replacedValueFormatted = String.format(Locale.getDefault(), "(%d)", replacedValue.intValue());
+            else
+                replacedValueFormatted = String.format(Locale.getDefault(), "(%.1f)", replacedValue);
+
+            criteriaText = criteriaText.replace(start, start + match.length(), replacedValueFormatted);
+            final int end = start + replacedValueFormatted.length();
 
             criteriaText.setSpan(new ClickableSpan() {
 
                 @Override
                 public void onClick(@NonNull View widget) {
                     Toast.makeText(activity, "Click", Toast.LENGTH_SHORT).show();
+                    if (variable.getType().equalsIgnoreCase("indicator")) {
+                        showIndicatorVariableDialog(variable.getDefaultValue(), variable.getMinValue(), variable.getMaxValue());
+                    } else if (variable.getType().equalsIgnoreCase("value")) {
+                        showVariableValueList(variable.getValues());
+                    }
                 }
 
                 @Override
@@ -79,6 +94,55 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
 
         holder.criteriaText.setText(criteriaText);
         holder.criteriaText.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    private void showIndicatorVariableDialog(double defaultValue, double minValue, double maxValue) {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(activity);
+        LayoutInflater inflater = activity.getLayoutInflater();
+        final View dialogView = inflater.inflate(R.layout.indicator_dialog_layout, null);
+        dialogBuilder.setView(dialogView);
+
+        final EditText editText = dialogView.findViewById(R.id.indicator_value);
+        editText.setText(String.valueOf(defaultValue));
+        // TODO: Restrict the minimum and maximum value
+
+        dialogBuilder.setTitle("Set Value");
+        dialogBuilder.setMessage(String.format(activity.getString(R.string.indicator_dialog_message), minValue, maxValue));
+        dialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // TODO: Set the value
+                dialog.dismiss();
+            }
+        });
+        dialogBuilder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                dialog.dismiss();
+            }
+        });
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.setCancelable(true);
+        alertDialog.show();
+    }
+
+    private void showVariableValueList(final List<Double> values) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle("Please select");
+        ArrayAdapter arrayAdapter = new ArrayAdapter<>(
+                activity,
+                android.R.layout.simple_list_item_1,
+                values
+        );
+
+        builder.setSingleChoiceItems(arrayAdapter, -1, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Toast.makeText(activity, values.get(i).toString(), Toast.LENGTH_SHORT).show();
+                dialogInterface.dismiss();
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     @Override
