@@ -2,9 +2,11 @@ package com.marketpulse;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -18,21 +20,27 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
+    private MarketDataAdapter marketDataAdapter;
+    private List<MarketResponseModel> marketResponseList = new ArrayList<>();
+
     @Inject
     NetworkService networkService;
-
-    private TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((MyApp) getApplication()).getNetComponent().inject(this);
         setContentView(R.layout.activity_main);
-        textView = findViewById(R.id.text_view);
-        getPlaylistItems();
+
+        marketDataAdapter = new MarketDataAdapter(this, marketResponseList);
+        RecyclerView marketDataRecyclerview = findViewById(R.id.market_data_rv);
+        marketDataRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+        marketDataRecyclerview.setAdapter(marketDataAdapter);
+
+        getMarketDataList();
     }
 
-    private void getPlaylistItems() {
+    private void getMarketDataList() {
         Observable<List<MarketResponseModel>> observable = networkService.getMarketData();
         observable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -43,13 +51,14 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable e) {
-                        textView.setText(getString(R.string.error));
                         Log.d(TAG, e.getMessage());
                     }
 
                     @Override
                     public void onNext(List<MarketResponseModel> model) {
-                        textView.setText(getString(R.string.success));
+                        marketResponseList.clear();
+                        marketResponseList.addAll(model);
+                        marketDataAdapter.notifyDataSetChanged();
                     }
                 });
     }
