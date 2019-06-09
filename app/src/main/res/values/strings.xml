@@ -6,4 +6,5 @@
     <string name="indicator_dialog_message">Please enter a new value for the variable from %1$.0f to %2$.0f.</string>
     <string name="please_enter_a_value">Please enter a value</string>
     <string name="and">and</string>
+    <string name="tap_to_retry">Tap to retry</string>
 </resources>

@@ -11,4 +11,9 @@
         android:layout_height="match_parent"
         android:background="@android:color/black" />
 
+    <include
+        android:id="@+id/loading_view"
+        layout="@layout/loading_layout"
+        android:visibility="visible" />
+
 </FrameLayout>
