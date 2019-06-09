@@ -1,6 +1,7 @@
 package com.marketpulse;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -32,6 +33,12 @@ public class MarketDataAdapter extends RecyclerView.Adapter<MarketDataAdapter.It
     public void onBindViewHolder(@NonNull final MarketDataAdapter.ItemViewHolder holder, int position) {
         holder.name.setText(responseModelList.get(position).getName());
         holder.tag.setText(responseModelList.get(position).getTag());
+        holder.adapterMainLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity.startActivity(new Intent(activity, CriteriaActivity.class));
+            }
+        });
     }
 
     @Override
@@ -41,10 +48,12 @@ public class MarketDataAdapter extends RecyclerView.Adapter<MarketDataAdapter.It
 
     class ItemViewHolder extends RecyclerView.ViewHolder {
 
+        View adapterMainLayout;
         TextView name, tag;
 
         ItemViewHolder(View itemView) {
             super(itemView);
+            adapterMainLayout = itemView.findViewById(R.id.adapter_main_layout);
             name = itemView.findViewById(R.id.name);
             tag = itemView.findViewById(R.id.tag);
         }
