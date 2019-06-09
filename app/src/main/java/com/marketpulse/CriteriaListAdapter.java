@@ -75,7 +75,6 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
 
                 @Override
                 public void onClick(@NonNull View widget) {
-                    Toast.makeText(activity, "Click", Toast.LENGTH_SHORT).show();
                     if (variable.getType().equalsIgnoreCase("indicator")) {
                         showIndicatorVariableDialog(variable.getDefaultValue(), variable.getMinValue(), variable.getMaxValue());
                     } else if (variable.getType().equalsIgnoreCase("value")) {
@@ -91,9 +90,13 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
             }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             delta += match.length();
         }
-
         holder.criteriaText.setText(criteriaText);
         holder.criteriaText.setMovementMethod(LinkMovementMethod.getInstance());
+
+        if (holder.getAdapterPosition() == getItemCount() - 1)
+            holder.andDividerText.setVisibility(View.GONE);
+        else
+            holder.andDividerText.setVisibility(View.VISIBLE);
     }
 
     private void showIndicatorVariableDialog(double defaultValue, double minValue, double maxValue) {
@@ -152,11 +155,12 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
 
     class ItemViewHolder extends RecyclerView.ViewHolder {
 
-        TextView criteriaText;
+        TextView criteriaText, andDividerText;
 
         ItemViewHolder(View itemView) {
             super(itemView);
             criteriaText = itemView.findViewById(R.id.criteria_text);
+            andDividerText = itemView.findViewById(R.id.and_divider_text);
         }
     }
 }
