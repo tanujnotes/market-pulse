@@ -1,8 +1,13 @@
 package com.marketpulse;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,7 +27,7 @@ public class MarketResponseModel {
     private String color;
     @SerializedName("criteria")
     @Expose
-    private List<Criteria> criteria = null;
+    private ArrayList<Criteria> criteria = null;
 
     public Integer getId() {
         return id;
@@ -56,15 +61,15 @@ public class MarketResponseModel {
         this.color = color;
     }
 
-    public List<Criteria> getCriteria() {
+    public ArrayList<Criteria> getCriteria() {
         return criteria;
     }
 
-    public void setCriteria(List<Criteria> criteria) {
+    public void setCriteria(ArrayList<Criteria> criteria) {
         this.criteria = criteria;
     }
 
-    public class Criteria {
+    public static class Criteria implements Serializable, Parcelable {
 
         @SerializedName("type")
         @Expose
@@ -99,9 +104,42 @@ public class MarketResponseModel {
         public void setVariable(HashMap variable) {
             this.variable = variable;
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(this.type);
+            dest.writeString(this.text);
+            dest.writeSerializable(this.variable);
+        }
+
+        public Criteria() {
+        }
+
+        protected Criteria(Parcel in) {
+            this.type = in.readString();
+            this.text = in.readString();
+            this.variable = (HashMap<String, Variable>) in.readSerializable();
+        }
+
+        public static final Parcelable.Creator<Criteria> CREATOR = new Parcelable.Creator<Criteria>() {
+            @Override
+            public Criteria createFromParcel(Parcel source) {
+                return new Criteria(source);
+            }
+
+            @Override
+            public Criteria[] newArray(int size) {
+                return new Criteria[size];
+            }
+        };
     }
 
-    public class Variable {
+    public static class Variable implements Serializable, Parcelable {
         @SerializedName("type")
         @Expose
         private String type;
@@ -179,5 +217,47 @@ public class MarketResponseModel {
         public void setDefaultValue(Integer defaultValue) {
             this.defaultValue = defaultValue;
         }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(this.type);
+            dest.writeList(this.values);
+            dest.writeString(this.studyType);
+            dest.writeString(this.parameterName);
+            dest.writeValue(this.minValue);
+            dest.writeValue(this.maxValue);
+            dest.writeValue(this.defaultValue);
+        }
+
+        public Variable() {
+        }
+
+        protected Variable(Parcel in) {
+            this.type = in.readString();
+            this.values = new ArrayList<Double>();
+            in.readList(this.values, Double.class.getClassLoader());
+            this.studyType = in.readString();
+            this.parameterName = in.readString();
+            this.minValue = (Integer) in.readValue(Integer.class.getClassLoader());
+            this.maxValue = (Integer) in.readValue(Integer.class.getClassLoader());
+            this.defaultValue = (Integer) in.readValue(Integer.class.getClassLoader());
+        }
+
+        public static final Parcelable.Creator<Variable> CREATOR = new Parcelable.Creator<Variable>() {
+            @Override
+            public Variable createFromParcel(Parcel source) {
+                return new Variable(source);
+            }
+
+            @Override
+            public Variable[] newArray(int size) {
+                return new Variable[size];
+            }
+        };
     }
 }

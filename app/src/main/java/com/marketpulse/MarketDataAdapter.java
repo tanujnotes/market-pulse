@@ -36,7 +36,9 @@ public class MarketDataAdapter extends RecyclerView.Adapter<MarketDataAdapter.It
         holder.adapterMainLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.startActivity(new Intent(activity, CriteriaActivity.class));
+                Intent intent = new Intent(activity, CriteriaActivity.class);
+                intent.putParcelableArrayListExtra("criteria_list", responseModelList.get(holder.getAdapterPosition()).getCriteria());
+                activity.startActivity(intent);
             }
         });
     }
