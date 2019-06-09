@@ -8,7 +8,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapter.ItemViewHolder> {
 
@@ -30,7 +33,24 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
 
     @Override
     public void onBindViewHolder(@NonNull final CriteriaListAdapter.ItemViewHolder holder, int position) {
-        holder.criteriaText.setText(criteriaList.get(position).getText());
+        HashMap<String, MarketResponseModel.Variable> variableHashMap = criteriaList.get(position).getVariable();
+        String criteriaText = criteriaList.get(position).getText();
+
+        Pattern pattern = Pattern.compile("\\$\\d");
+        Matcher matcher = pattern.matcher(criteriaText);
+        while (matcher.find()) {
+            String replacedValue = "";
+            String match = matcher.group();
+            MarketResponseModel.Variable variable = variableHashMap.get(match);
+            if (variable.getType().equalsIgnoreCase("indicator")) {
+                replacedValue = variable.getDefaultValue().toString();
+            } else if (variable.getType().equalsIgnoreCase("value")) {
+                replacedValue = variable.getValues().get(0).toString();
+            }
+            criteriaText = criteriaText.replace(match, replacedValue);
+        }
+
+        holder.criteriaText.setText(criteriaText);
     }
 
     @Override
