@@ -37,6 +37,8 @@ public class MarketDataAdapter extends RecyclerView.Adapter<MarketDataAdapter.It
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(activity, CriteriaActivity.class);
+                intent.putExtra("name", responseModelList.get(holder.getAdapterPosition()).getName());
+                intent.putExtra("tag", responseModelList.get(holder.getAdapterPosition()).getTag());
                 intent.putParcelableArrayListExtra("criteria_list", responseModelList.get(holder.getAdapterPosition()).getCriteria());
                 activity.startActivity(intent);
             }
