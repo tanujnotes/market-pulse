@@ -3,10 +3,16 @@ package com.marketpulse;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,23 +40,45 @@ public class CriteriaListAdapter extends RecyclerView.Adapter<CriteriaListAdapte
     @Override
     public void onBindViewHolder(@NonNull final CriteriaListAdapter.ItemViewHolder holder, int position) {
         HashMap<String, MarketResponseModel.Variable> variableHashMap = criteriaList.get(position).getVariable();
-        String criteriaText = criteriaList.get(position).getText();
-
+        SpannableStringBuilder criteriaText = new SpannableStringBuilder(criteriaList.get(position).getText());
+//        Today's Volume > prev $2 Vol SMA by $3 x
         Pattern pattern = Pattern.compile("\\$\\d");
         Matcher matcher = pattern.matcher(criteriaText);
+        int delta = 0;
+
         while (matcher.find()) {
+            final int start = matcher.start() + delta;
             String replacedValue = "";
             String match = matcher.group();
+
             MarketResponseModel.Variable variable = variableHashMap.get(match);
             if (variable.getType().equalsIgnoreCase("indicator")) {
                 replacedValue = variable.getDefaultValue().toString();
             } else if (variable.getType().equalsIgnoreCase("value")) {
                 replacedValue = variable.getValues().get(0).toString();
             }
-            criteriaText = criteriaText.replace(match, replacedValue);
+//            criteriaText = criteriaText.replace(match, replacedValue);
+            criteriaText = criteriaText.replace(start, start + match.length(), replacedValue);
+            final int end = start + replacedValue.length();
+
+            criteriaText.setSpan(new ClickableSpan() {
+
+                @Override
+                public void onClick(@NonNull View widget) {
+                    Toast.makeText(activity, "Click", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void updateDrawState(@NonNull TextPaint ds) {
+                    super.updateDrawState(ds);
+                    ds.setUnderlineText(false);
+                }
+            }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            delta += match.length();
         }
 
         holder.criteriaText.setText(criteriaText);
+        holder.criteriaText.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @Override
