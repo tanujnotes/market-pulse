@@ -33,6 +33,11 @@ public class MarketDataAdapter extends RecyclerView.Adapter<MarketDataAdapter.It
     public void onBindViewHolder(@NonNull final MarketDataAdapter.ItemViewHolder holder, int position) {
         holder.name.setText(responseModelList.get(position).getName());
         holder.tag.setText(responseModelList.get(position).getTag());
+        if (responseModelList.get(holder.getAdapterPosition()).getColor().equalsIgnoreCase("red"))
+            holder.tag.setTextColor(activity.getColor(R.color.red));
+        else if (responseModelList.get(holder.getAdapterPosition()).getColor().equalsIgnoreCase("green"))
+            holder.tag.setTextColor(activity.getColor(R.color.green));
+
         holder.adapterMainLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
